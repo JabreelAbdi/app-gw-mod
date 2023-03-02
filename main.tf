@@ -92,7 +92,7 @@ resource "azurerm_application_gateway" "network" {
     #   id = azurerm_probe.example.id
     # }
   }
-
+#try and change the protocol to https to see if it changes the port number on the console
   http_listener {
     name                           = var.listener_name
     frontend_ip_configuration_name = var.frontend_ip_configuration_name
