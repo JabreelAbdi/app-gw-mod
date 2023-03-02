@@ -38,20 +38,21 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-
+  enable_http2        = var.enable_http2
   # depends_on = [azurerm_lb_probe.example]
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
-    capacity = 2
+    name     = var.sku.name
+    tier     = var.sku.tier
+    capacity = var.sku.capacity
   }
 
   gateway_ip_configuration {
@@ -59,14 +60,21 @@ resource "azurerm_application_gateway" "network" {
     subnet_id = azurerm_subnet.frontend.id
   }
 
+
+  frontend_ip_configuration {
+    name                 = var.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+
   frontend_port {
     name = var.frontend_port_name
     port = 80
   }
 
-  frontend_ip_configuration {
-    name                 = var.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.example.id
+  #untested code most likely will cause an error since count has not been used
+  frontend_port {
+    name = "${var.frontend_port_name}-2"
+    port = 443
   }
 
   backend_address_pool {
@@ -98,5 +106,6 @@ resource "azurerm_application_gateway" "network" {
     http_listener_name         = var.listener_name
     backend_address_pool_name  = var.backend_address_pool_name
     backend_http_settings_name = var.http_setting_name
+    priority                   = 1
   }
 }
